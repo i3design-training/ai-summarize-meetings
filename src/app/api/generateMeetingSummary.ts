@@ -1,11 +1,18 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import OpenAI from 'openai'
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-export default async function generateMeetingSummary(meetingTranscription: string): Promise<string | null> {
+export default async function generateMeetingSummary(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const { meetingTranscription } = req.body
+
+    if (!meetingTranscription) {
+      return res.status(400).json({ error: 'Meeting transcription is required' })
+    }
+
     const response = await client.chat.completions.create({
       messages: [
         {
@@ -21,13 +28,15 @@ export default async function generateMeetingSummary(meetingTranscription: strin
       model: 'gpt-4-1106-preview',
     })
 
-    if (response && response.choices && response.choices[0].message) {
-      return response.choices[0].message.content
-    } else {
+    if (!response.choices || response.choices.length === 0 || !response.choices[0].message) {
       throw new Error('Invalid response from OpenAI API')
     }
+
+    const meetingSummary = response.choices[0].message.content
+
+    res.status(200).json({ meetingSummary })
   } catch (error) {
     console.error('Error generating meeting summary:', error)
-    throw error
+    res.status(500).json({ error: 'Internal Server Error' })
   }
 }
