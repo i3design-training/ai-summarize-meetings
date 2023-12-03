@@ -5,7 +5,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-export default async function generateMeetingSummary(req: NextApiRequest, res: NextApiResponse) {
+export default async function summarizeTranscription(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { meetingTranscription } = req.body
 
