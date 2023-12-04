@@ -1,16 +1,21 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import OpenAI from 'openai'
+import { NextApiRequest, NextApiResponse } from 'next';
+import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-})
+});
 
-export default async function summarizeTranscription(req: NextApiRequest, res: NextApiResponse) {
+export default async function summarizeTranscription(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
-    const { meetingTranscription } = req.body
+    const { meetingTranscription } = req.body;
 
     if (!meetingTranscription) {
-      return res.status(400).json({ error: 'Meeting transcription is required' })
+      return res
+        .status(400)
+        .json({ error: 'Meeting transcription is required' });
     }
 
     const response = await client.chat.completions.create({
@@ -26,17 +31,21 @@ export default async function summarizeTranscription(req: NextApiRequest, res: N
         },
       ],
       model: 'gpt-4-1106-preview',
-    })
+    });
 
-    if (!response.choices || response.choices.length === 0 || !response.choices[0].message) {
-      throw new Error('Invalid response from OpenAI API')
+    if (
+      !response.choices ||
+      response.choices.length === 0 ||
+      !response.choices[0].message
+    ) {
+      throw new Error('Invalid response from OpenAI API');
     }
 
-    const meetingSummary = response.choices[0].message.content
+    const meetingSummary = response.choices[0].message.content;
 
-    res.status(200).json({ meetingSummary })
+    res.status(200).json({ meetingSummary });
   } catch (error) {
-    console.error('Error generating meeting summary:', error)
-    res.status(500).json({ error: 'Internal Server Error' })
+    console.error('Error generating meeting summary:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
